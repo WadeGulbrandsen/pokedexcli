@@ -44,7 +44,35 @@ func getCommands() map[string]cliCommand {
 			description: "Try to catch the named Pokemon",
 			callback:    commandCatch,
 		},
+		"inspect": {
+			name:        "inspect <name>",
+			description: "Inspect the stats of the named Pokemon",
+			callback:    commandInspect,
+		},
 	}
+}
+
+func commandInspect(cfg *config, args ...string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("No name given: Usage 'inspect <name>'")
+	}
+	name := args[0]
+	pokemon, ok := cfg.caughtPokemon[name]
+	if !ok {
+		return fmt.Errorf("You need to catch a %s before you can inspect it.", name)
+	}
+	fmt.Printf("Name: %s\n", pokemon.Name)
+	fmt.Printf("Height: %d\n", pokemon.Height)
+	fmt.Printf("Weight: %d\n", pokemon.Weight)
+	fmt.Println("Stats:")
+	for _, stat := range pokemon.Stats {
+		fmt.Printf(" - %s: %d\n", stat.Stat.Name, stat.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, p_type := range pokemon.Types {
+		fmt.Printf(" - %s\n", p_type.Type.Name)
+	}
+	return nil
 }
 
 func commandCatch(cfg *config, args ...string) error {
@@ -56,16 +84,13 @@ func commandCatch(cfg *config, args ...string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Throwing a Pokeball at %s...\n", *pokemon.Name)
+	fmt.Printf("Throwing a Pokeball at %s...\n", pokemon.Name)
 
-	roll := rand.Intn(pokemon.BaseXP)
-	fmt.Printf("BaseXP: %d\nRolled %d\n", pokemon.BaseXP, roll)
-
-	if roll < 75 {
-		fmt.Printf("%s was caught!\n", *pokemon.Name)
-		cfg.caughtPokemon[*pokemon.Name] = pokemon
+	if roll := rand.Intn(pokemon.BaseXP); roll < 50 {
+		fmt.Printf("%s was caught!\n", pokemon.Name)
+		cfg.caughtPokemon[pokemon.Name] = pokemon
 	} else {
-		fmt.Printf("%s escaped!\n", *pokemon.Name)
+		fmt.Printf("%s escaped!\n", pokemon.Name)
 	}
 	return nil
 }
