@@ -33,13 +33,34 @@ func getCommands() map[string]cliCommand {
 			description: "Show the previous 20 locations on the map",
 			callback:    commandMapB,
 		},
+		"explore": {
+			name:        "explore <area_name>",
+			description: "List the Pokemon in the given area",
+			callback:    commandExplore,
+		},
 	}
+}
+
+func commandExplore(cfg *config, args ...string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("No area name given: Usage 'explore <area_name>'")
+	}
+	area_name := args[0]
+	la, err := cfg.pokeapi.GetLocationArea(area_name)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Exploring %s...\nFound Pokemon:\n", area_name)
+	for _, p := range la.PokemonEncounters {
+		fmt.Printf(" - %s\n", p.Pokemon.Name)
+	}
+	return nil
 }
 
 func commandHelp(cfg *config, args ...string) error {
 	fmt.Print("Welcome to the Pokedex!\nUsage:\n\n")
-	for name, command := range getCommands() {
-		fmt.Printf("%s: %s\n", name, command.description)
+	for _, command := range getCommands() {
+		fmt.Printf("%s: %s\n", command.name, command.description)
 	}
 	return nil
 }
