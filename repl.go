@@ -10,9 +10,10 @@ import (
 )
 
 type config struct {
-	pokeapi    pokeapi.Client
-	nextLocURL *string
-	prevLocURL *string
+	pokeapi       pokeapi.Client
+	nextLocURL    *string
+	prevLocURL    *string
+	caughtPokemon map[string]pokeapi.Pokemon
 }
 
 func cleanInput(text string) []string {

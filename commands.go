@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 )
 
@@ -38,7 +39,35 @@ func getCommands() map[string]cliCommand {
 			description: "List the Pokemon in the given area",
 			callback:    commandExplore,
 		},
+		"catch": {
+			name:        "catch <name>",
+			description: "Try to catch the named Pokemon",
+			callback:    commandCatch,
+		},
 	}
+}
+
+func commandCatch(cfg *config, args ...string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("No name given: Usage 'catch <name>'")
+	}
+	name := args[0]
+	pokemon, err := cfg.pokeapi.GetPokemon(name)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Throwing a Pokeball at %s...\n", *pokemon.Name)
+
+	roll := rand.Intn(pokemon.BaseXP)
+	fmt.Printf("BaseXP: %d\nRolled %d\n", pokemon.BaseXP, roll)
+
+	if roll < 75 {
+		fmt.Printf("%s was caught!\n", *pokemon.Name)
+		cfg.caughtPokemon[*pokemon.Name] = pokemon
+	} else {
+		fmt.Printf("%s escaped!\n", *pokemon.Name)
+	}
+	return nil
 }
 
 func commandExplore(cfg *config, args ...string) error {
